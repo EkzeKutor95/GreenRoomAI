@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.cache/
+bin/
+run/
+*.tmp
+*.log
+*.csv
+*.lock
+.DS_Store
+coverage.out
+.idea/

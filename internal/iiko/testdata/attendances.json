@@ -1,0 +1,1 @@
+{"items":[{"id":"attendance-1","employeeId":"barista-1","organizationId":"org","startAt":"2026-11-10T18:00:00+03:00","endAt":"2026-11-11T01:05:00+03:00","personalStartAt":"2026-11-10T17:58:00+03:00","personalEndAt":"2026-11-11T01:02:00+03:00","isClosed":true}],"totalCount":1,"limit":100,"offset":0}

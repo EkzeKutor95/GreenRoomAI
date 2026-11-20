@@ -1,0 +1,8 @@
+[
+ {"name":"OpenDate.Typed","displayName":"Операционный день","type":"DATE","canGroup":true,"canFilter":true,"canAggregate":false},
+ {"name":"DishGroup","displayName":"Группа блюда","type":"STRING","canGroup":true,"canFilter":true,"canAggregate":false},
+ {"name":"DishName","displayName":"Блюдо","type":"STRING","canGroup":true,"canFilter":true,"canAggregate":false},
+ {"name":"DishAmountInt","displayName":"Количество","type":"AMOUNT","canGroup":false,"canFilter":true,"canAggregate":true},
+ {"name":"DishDiscountSumInt","displayName":"Сумма со скидкой","type":"MONEY","canGroup":false,"canFilter":true,"canAggregate":true},
+ {"name":"UniqOrderId","displayName":"Уникальные заказы","type":"INTEGER","canGroup":false,"canFilter":false,"canAggregate":true}
+]
