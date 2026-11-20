@@ -33,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-func run(logger *slog.Logger) error {
+func run(logger *slog.Logger) (result error) {
 	check := flag.Bool("check", false, "проверить конфигурацию и read-only подключение к iiko/Telegram")
 	checkConfig := flag.Bool("check-config", false, "проверить конфигурацию без HTTP-запросов")
 	checkWorkforce := flag.Bool("check-workforce", false, "проверить кассиров и кассовые смены OLAP без вывода имён и сумм")
@@ -42,6 +42,8 @@ func run(logger *slog.Logger) error {
 	demo := flag.Bool("demo", false, "показать синтетический отчёт без ключей и сети")
 	printVersion := flag.Bool("version", false, "версия приложения")
 	envFile := flag.String("env", ".env", "локальный .env")
+	restartEvery := flag.Duration("restart-every", time.Hour, "перезапуск через этот интервал; 0 отключает перезапуск")
+	worker := flag.Bool("worker", false, "внутренний режим дочернего процесса с управлением через stdin")
 	flag.Parse()
 	if *printVersion {
 		fmt.Println("GREEN ROOM AI", version)
@@ -49,6 +51,11 @@ func run(logger *slog.Logger) error {
 	}
 	if *demo {
 		return demoReport()
+	}
+	// The parent must not load .env: each new child reads current file values,
+	// while explicitly exported environment variables keep their precedence.
+	if !*worker && !*check && !*checkConfig && !*checkWorkforce && !*diagnose && *restartEvery != 0 {
+		return runSupervised(logger, *envFile, *restartEvery)
 	}
 	if err := config.LoadEnv(*envFile); err != nil {
 		return err
@@ -68,6 +75,9 @@ func run(logger *slog.Logger) error {
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+	if *worker {
+		ctx = contextFromControlPipe(ctx, os.Stdin)
+	}
 	httpClient := &http.Client{Timeout: cfg.HTTPTimeout, CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }}
 	api, err := iiko.New(iiko.Config{BaseURL: cfg.BaseURL, AppID: cfg.AppID, OrganizationID: cfg.OrganizationID, ClientSecret: cfg.ClientSecret, APIKey: cfg.APIKey, Location: cfg.Location, RequestInterval: cfg.RequestInterval}, httpClient, logger)
 	if err != nil {
@@ -152,7 +162,7 @@ func run(logger *slog.Logger) error {
 	}
 	defer func() {
 		if err := release(); err != nil {
-			logger.Warn("release instance lock failed", "error", err)
+			result = errors.Join(result, fmt.Errorf("release instance lock: %w", err))
 		}
 	}()
 	store, err := state.Open(cfg.StateFile, cfg.AutoReports)
@@ -218,6 +228,9 @@ func run(logger *slog.Logger) error {
 		}
 	}
 	logger.Info("GREEN ROOM AI stopped")
+	if cause := context.Cause(ctx); cause != nil && !errors.Is(cause, context.Canceled) {
+		first = errors.Join(first, cause)
+	}
 	return first
 }
 func demoReport() error {

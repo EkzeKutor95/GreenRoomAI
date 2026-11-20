@@ -5,8 +5,8 @@
   <key>ProgramArguments</key><array><string>__PROJECT_DIR__/bin/greenroom-ai</string></array>
   <key>WorkingDirectory</key><string>__PROJECT_DIR__</string>
   <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
-  <key>ThrottleInterval</key><integer>30</integer>
+  <!-- Hourly worker restarts are handled by the application itself. -->
+  <key>KeepAlive</key><false/>
   <key>StandardOutPath</key><string>__PROJECT_DIR__/run/stdout.log</string>
   <key>StandardErrorPath</key><string>__PROJECT_DIR__/run/stderr.log</string>
 </dict></plist>
